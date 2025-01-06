@@ -1,0 +1,109 @@
+학습 코드
+# Original
+deepspeed --master_port=24999 train_ds.py \
+  --version="/workspace/llava7b" \
+  --dataset_dir='/workspace/dataset' \
+  --vision_pretrained="/workspace/sam_vit_h_4b8939.pth" \
+  --dataset="reason_seg" \
+  --sample_rates="9" \
+  --exp_name="lisa-7b"
+
+# pre-trained 데려와서 하기
+deepspeed --master_port=24999 train_ds.py \
+  --version="xinlai/LISA-7B-v1" \
+  --dataset_dir='/workspace/dataset' \
+  --vision_pretrained="/workspace/sam_vit_h_4b8939.pth" \
+  --dataset="reason_seg" \
+  --sample_rates="9" \
+  --exp_name="lisa-7b"
+
+deepspeed --master_port=24999 train_ds.py \
+  --dataset_dir='/workspace/dataset' \
+  --vision_pretrained="/workspace/sam_vit_h_4b8939.pth" \
+  --dataset="reason_seg" \
+  --sample_rates="9" \
+  --exp_name="lisa-7b"
+
+# log 남기게 실행
+deepspeed --master_port=24999 train_ds.py \
+  --version="/workspace/LISA-7B-v1" \
+  --dataset_dir='/workspace/dataset' \
+  --vision_pretrained="/workspace/sam_vit_h_4b8939.pth" \
+  --dataset="reason_seg" \
+  --sample_rates="9" \
+  --exp_name="lisa-7b" |& tee -a log.txt
+
+(log.txt 이름은 자율적으로 수정할것)
+
+source lisa/bin/activate <-로 가상환경 실행
+CUDA_VISIBLE_DEVICES=0,1 python chat_auto.py --version='/workspace/LISA-7B-v1'
+CUDA_VISIBLE_DEVICES=0 python chat.py --version='/workspace/LISA-7B-OOD'
+
+* 도대체 VLM 실행을 언제 어디 무슨 파일에서 진행하는지 찾아서 
+  그거 먼저 수행하도록 바꾸기
+* VLM에게 넘겨주는 프롬프트 어디있는지 찾기
+  -> 수정
+* VLM에게 받은 답 어디에 저장되는지 찾아서 
+  처리(switch/VQA답변 분리 + 그걸 필요한 곳에 각각 넘겨주기)하기
+* switch 받아서 랜덤 샘플링 수정 - utils/reason_seg_dataset.py
+
+
+** OOD 데이터셋 문제
+  - 중간 중간 noise 존재
+  - 중간 중간 다른 형식 존재
+    ex) output: [어쩌구 저쩌구] (대괄호도 출력되면 안됨)
+    -> 뭐야 과거의 내가 이미 잘 처리를 해뒀네 잘했다 나
+  
+
+# 1115 유정
+  - venv lisa 환경 구축 
+
+# 허페 모델 로컬로 클론해온 모델 Validation Test
+deepspeed --master_port=24999 train_ds.py \
+  --version="/workspace/LISA-7B-v1" \
+  --dataset_dir='../dataset' \
+  --vision_pretrained="/workspace/sam_vit_h_4b8939.pth" \
+  --dataset="reason_seg" \
+  --sample_rates="9" \
+  --exp_name="lisa-7b" \
+  --eval_only
+
+# 우리꺼~
+deepspeed --master_port=24999 train_ds.py \
+  --version="/workspace/LISA-7B-OOD" \
+  --dataset_dir='../dataset' \
+  --vision_pretrained="/workspace/sam_vit_h_4b8939.pth" \
+  --dataset="reason_seg" \
+  --sample_rates="9" \
+  --exp_name="lisa-7b" \
+  --eval_only
+
+# 인퍼런스
+python chat_new.py --version='/workspace/LISA-7B-OOD'
+
+CUDA_VISIBLE_DEVICES=0,1 python chat_newnew.py --version='/workspace/LISA-7B-v1' => 이건 또 되네ㅋㅋ
+
+CUDA_VISIBLE_DEVICES=0,1 python chat.py --version='/workspace/LISA-7B-v1'
+
+# 리얼 최종 사람이 하는 거
+deepspeed --master_port=24999 chat_new.py \
+  --version="/workspace/LISA-7B-v1" \
+  --dataset_dir='../dataset' \
+  --vision_pretrained="/workspace/sam_vit_h_4b8939.pth" \
+  --dataset="reason_seg" \
+  --sample_rates="9" \
+  --exp_name="lisa-7b" \
+  --eval_only
+
+# 자동
+deepspeed --master_port=24999 inference.py \
+  --version="/workspace/LISA-7B-v1" \
+  --dataset_dir='../dataset' \
+  --vision_pretrained="/workspace/sam_vit_h_4b8939.pth" \
+  --dataset="reason_seg" \
+  --sample_rates="9" \
+  --exp_name="lisa-7b" \
+  --eval_only
+
+# 대조군 자동
+CUDA_VISIBLE_DEVICES=0,1 python inference_ori.py --version='/workspace/LISA-7B-v1'
