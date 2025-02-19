@@ -58,3 +58,8 @@ The **IoU (Intersection over Union)** performance was evaluated using the **Reas
 Key observations:
 - Although our model shows a slight decrease compared to LISA-7B (due to the trade-off in focusing on OOD handling), it still significantly outperforms OVSeg and GRES.
 - The results indicate that some segmentation capability might have been compromised while improving OOD performance, but the overall segmentation ability remains strong.
+
+---
+
+### 📚 **References**
+Xin Lai, et al. “LISA: Reasoning Segmentation via Large Language Model.” *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)*, 2024.
